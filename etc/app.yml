@@ -1,0 +1,15 @@
+Name: edge-cygateway-api
+Host: 0.0.0.0
+Port: 8801
+
+# mysql配置信息
+Mysql:
+  Dns: root:066311@tcp(127.0.0.1:3306)/ginchat?charset=utf8mb4&parseTime=True&loc=Local
+
+Redis:
+  Host: 0.0.0.0
+  Port: 6379
+  Password:
+  DB: 0
+  PoolSize: 30
+  MinIdleConn: 30

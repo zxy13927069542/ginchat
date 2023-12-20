@@ -1,0 +1,276 @@
+definitions:
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  models.NullTime:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  models.UserBasic:
+    properties:
+      clientIP:
+        type: string
+      clientPort:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      deviceInfo:
+        type: string
+      email:
+        type: string
+      heartbeatTime:
+        $ref: '#/definitions/models.NullTime'
+      id:
+        type: integer
+      identity:
+        type: string
+      isLogOut:
+        description: LogOutTime    uint64
+        type: boolean
+      loginOutTime:
+        $ref: '#/definitions/models.NullTime'
+      loginTime:
+        $ref: '#/definitions/models.NullTime'
+      name:
+        type: string
+      passWord:
+        type: string
+      phone:
+        type: string
+      salt:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  service.JSONResult:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+    type: object
+  service.UserDelReq:
+    properties:
+      id:
+        type: integer
+    required:
+    - id
+    type: object
+  service.UserGetReq:
+    properties:
+      id:
+        type: integer
+    required:
+    - id
+    type: object
+  service.UserLoginReq:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - name
+    - password
+    type: object
+  service.UserRegisterReq:
+    properties:
+      password:
+        description: 密码
+        type: string
+      rePassword:
+        description: 密码确认
+        type: string
+      userName:
+        description: 用户名
+        type: string
+    required:
+    - password
+    - rePassword
+    - userName
+    type: object
+  service.UserUpdateReq:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+    required:
+    - id
+    type: object
+  utils.TokenResp:
+    properties:
+      accessExpire:
+        type: string
+      refreshAfter:
+        type: string
+      token:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /index:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      tags:
+      - 首页
+  /user/delete:
+    post:
+      parameters:
+      - description: ID
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/service.UserDelReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.JSONResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.JSONResult'
+      summary: 删除用户
+      tags:
+      - 用户模块
+  /user/get:
+    post:
+      parameters:
+      - description: ID
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/service.UserGetReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/service.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.UserBasic'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.JSONResult'
+      summary: 查询用户
+      tags:
+      - 用户模块
+  /user/list:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/service.JSONResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.UserBasic'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.JSONResult'
+      summary: 用户列表
+      tags:
+      - 用户模块
+  /user/login:
+    post:
+      parameters:
+      - description: 账号
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/service.UserLoginReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/service.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/utils.TokenResp'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.JSONResult'
+      summary: 用户登陆
+      tags:
+      - 用户模块
+  /user/register:
+    post:
+      parameters:
+      - description: 账号
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/service.UserRegisterReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.JSONResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.JSONResult'
+      summary: 注册用户
+      tags:
+      - 用户模块
+  /user/update:
+    post:
+      parameters:
+      - description: 用户信息
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/service.UserUpdateReq'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.JSONResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.JSONResult'
+      summary: 更新用户
+      tags:
+      - 用户模块
+swagger: "2.0"
