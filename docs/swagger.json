@@ -4,7 +4,7 @@
         "contact": {}
     },
     "paths": {
-        "/index": {
+        "/": {
             "get": {
                 "tags": [
                     "首页"
@@ -41,6 +41,56 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/service.JSONResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/service.JSONResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/findUserByNameAndPwd": {
+            "post": {
+                "tags": [
+                    "用户模块"
+                ],
+                "summary": "用户登陆",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "账号",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "密码",
+                        "name": "password",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/service.JSONResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.UserBasic"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -180,27 +230,51 @@
             }
         },
         "/user/register": {
-            "post": {
+            "get": {
                 "tags": [
                     "用户模块"
                 ],
                 "summary": "注册用户",
                 "parameters": [
                     {
+                        "type": "string",
                         "description": "账号",
-                        "name": "account",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service.UserRegisterReq"
-                        }
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "密码",
+                        "name": "password",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "密码确认",
+                        "name": "Identity",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/service.JSONResult"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/service.JSONResult"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.UserRegisterResp"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -377,24 +451,59 @@
                 }
             }
         },
-        "service.UserRegisterReq": {
+        "service.UserRegisterResp": {
             "type": "object",
-            "required": [
-                "password",
-                "rePassword",
-                "userName"
-            ],
             "properties": {
-                "password": {
-                    "description": "密码",
+                "clientIP": {
                     "type": "string"
                 },
-                "rePassword": {
-                    "description": "密码确认",
+                "clientPort": {
                     "type": "string"
                 },
-                "userName": {
-                    "description": "用户名",
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "deviceInfo": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "heartbeatTime": {
+                    "$ref": "#/definitions/models.NullTime"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "identity": {
+                    "type": "string"
+                },
+                "isLogOut": {
+                    "description": "LogOutTime    uint64",
+                    "type": "boolean"
+                },
+                "loginOutTime": {
+                    "$ref": "#/definitions/models.NullTime"
+                },
+                "loginTime": {
+                    "$ref": "#/definitions/models.NullTime"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "passWord": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "salt": {
+                    "type": "string"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }

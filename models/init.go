@@ -12,15 +12,20 @@ import (
 
 var db *gorm.DB
 
-//	Init() database连接初始化
+var (
+	UserBasicM *UserBasicModel
+	ContactM   *ContactModel
+)
+
+// Init() database连接初始化
 func Init(c config.Config) *gorm.DB {
 	//	自定义日志打印sql
 	newLogger := logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags),
 		logger.Config{
-		SlowThreshold: time.Second,
-		LogLevel: logger.Info,
-		Colorful: true,
-	})
+			SlowThreshold: time.Second,
+			LogLevel:      logger.Info,
+			Colorful:      true,
+		})
 
 	var err error
 	db, err = gorm.Open(mysql.Open(c.Mysql.Dns), &gorm.Config{Logger: newLogger})
@@ -33,5 +38,8 @@ func Init(c config.Config) *gorm.DB {
 	db.AutoMigrate(&Message{})
 	db.AutoMigrate(&GroupBasic{})
 	db.AutoMigrate(&Contact{})
+
+	UserBasicM = NewUserBasicModel()
+	ContactM = NewContactModel()
 	return db
 }

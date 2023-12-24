@@ -1,9 +1,21 @@
 package service
 
+import (
+	"ginchat/models"
+)
+
 type JSONResult struct {
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
+}
+
+type ListResp struct {
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+	Rows    interface{}
+	Total   int
 }
 
 type PhoneS struct {
@@ -15,9 +27,13 @@ type EmailS struct {
 }
 
 type UserRegisterReq struct {
-	UserName   string `json:"userName" binding:"required"`   //	用户名
-	Password   string `json:"password" binding:"required"`   //	密码
-	RePassword string `json:"rePassword" binding:"required"` //	密码确认
+	UserName   string `form:"name" json:"userName" binding:"required"`     //	用户名
+	Password   string `form:"password" json:"password" binding:"required"` //	密码
+	RePassword string `form:"Identity" json:"Identity" binding:"required"` //	密码确认
+}
+
+type UserRegisterResp struct {
+	models.UserBasic
 }
 
 type UserDelReq struct {
@@ -45,4 +61,33 @@ type UserLoginResp struct {
 	Token        string `json:"token"`
 	AccessExpire string `json:"accessExpire"`
 	RefreshAfter string `json:"refreshAfter"`
+}
+
+type FindUserReq struct {
+	Name     string `form:"name" binding:"required"`
+	PassWord string `form:"password" binding:"required"`
+}
+
+type FindUserResp struct {
+	models.UserBasic
+}
+
+type ToChatReq struct {
+	UserId uint   `form:"userId"`
+	Token  string `form:"token"`
+}
+
+type SearchFriendReq struct {
+	UserId uint `form:"userId"`
+}
+
+type SearchFriendResp struct {
+	JSONResult
+	Rows  []models.UserBasic
+	Total int
+}
+
+type ChatReq struct {
+	UserId int64  `json:"userId" form:"userId"`
+	Token  string `json:"token" form:"token"`
 }

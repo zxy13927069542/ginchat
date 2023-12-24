@@ -60,8 +60,8 @@
                 //网络请求
                 //封装了promis
                 util.post("/user/createUser", this.user).then(res => {
-                    console.log(res)
-                    if (res.code != 0) {
+                    console.log(res.code)
+                    if (res.code != 200) {
                         mui.toast(res.message)
                     } else {
                         //location.replace("localhost:8081")

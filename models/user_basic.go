@@ -88,3 +88,14 @@ func (m *UserBasicModel) List() ([]UserBasic, error) {
 	}
 	return users, nil
 }
+
+// ListByIds 根据id列表查询
+func (m *UserBasicModel) ListByIds(ids []uint) ([]UserBasic, error) {
+	var users []UserBasic
+
+	if err := m.db.Where("id in ?", ids).Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}

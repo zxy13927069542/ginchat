@@ -16,12 +16,14 @@ import (
 )
 
 type UserBasicService struct {
-	model *models.UserBasicModel
+	um *models.UserBasicModel
+	cm *models.ContactModel
 }
 
 func NewUserBasicService() *UserBasicService {
 	return &UserBasicService{
-		model: models.NewUserBasicModel(),
+		um: models.UserBasicM,
+		cm: models.ContactM,
 	}
 }
 
@@ -29,38 +31,38 @@ func NewUserBasicService() *UserBasicService {
 //
 //	@Tags		用户模块
 //	@Summary	注册用户
-//	@Param		account	body		service.UserRegisterReq	true	"账号"
-//	@Success	200		{object}	service.JSONResult{}
-//	@Failure	400		{object}	service.JSONResult{}
-//	@Router		/user/register [post]
+//	@Param		name		query		string	true	"账号"
+//	@Param		password	query		string	true	"密码"
+//	@Param		Identity	query		string	true	"密码确认"
+//	@Success	200			{object}	service.JSONResult{data=service.UserRegisterResp}
+//	@Router		/user/register [get]
 func (s *UserBasicService) Register(c *gin.Context) {
 	var user UserRegisterReq
-	if err := c.ShouldBindBodyWith(&user, binding.JSON); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, JSONResult{400, "参数错误", nil})
+	if err := c.Bind(&user); err != nil {
+		c.IndentedJSON(http.StatusOK, JSONResult{400, "参数错误", nil})
 		return
 	}
 
 	if user.Password != user.RePassword {
-		c.IndentedJSON(http.StatusBadRequest, JSONResult{400, "两次密码不一致", nil})
+		c.IndentedJSON(http.StatusOK, JSONResult{400, "两次密码不一致", nil})
 		return
 	}
 
-	if nameByUser := s.model.FindUserByName(user.UserName); nameByUser.Name != "" {
-		c.IndentedJSON(http.StatusBadRequest, JSONResult{400, "用户已存在", nil})
+	if nameByUser := s.um.FindUserByName(user.UserName); nameByUser.Name != "" {
+		c.IndentedJSON(http.StatusOK, JSONResult{400, "用户已存在", nil})
 		return
 	}
-
 
 	var m models.UserBasic
 	m.Name = user.UserName
 	m.Salt = utils.GenSalt()
 	m.PassWord = utils.MakePassword(user.Password, m.Salt)
-	if err := s.model.Create(m).Error; err != nil {
+	if err := s.um.Create(m).Error; err != nil {
 		log.Errorf(">>Create user failed! Err: [%v]", err)
-		c.IndentedJSON(http.StatusInternalServerError, JSONResult{500, "内部错误", nil})
+		c.IndentedJSON(http.StatusOK, JSONResult{500, "内部错误", nil})
 		return
 	}
-	c.IndentedJSON(http.StatusOK, JSONResult{200, "创建成功", nil})
+	c.IndentedJSON(http.StatusOK, JSONResult{200, "创建成功", m})
 }
 
 // Delete
@@ -74,13 +76,13 @@ func (s *UserBasicService) Register(c *gin.Context) {
 func (s *UserBasicService) Delete(c *gin.Context) {
 	var user UserDelReq
 	if err := c.ShouldBindBodyWith(&user, binding.JSON); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, JSONResult{400, "参数错误", nil})
+		c.IndentedJSON(http.StatusOK, JSONResult{400, "参数错误", nil})
 		return
 	}
 
 	var m models.UserBasic
 	m.ID = user.ID
-	s.model.Delete(m)
+	s.um.Delete(m)
 	c.IndentedJSON(http.StatusOK, JSONResult{200, "删除成功", nil})
 }
 
@@ -95,18 +97,18 @@ func (s *UserBasicService) Delete(c *gin.Context) {
 func (s *UserBasicService) Get(c *gin.Context) {
 	var user UserGetReq
 	if err := c.ShouldBindBodyWith(&user, binding.JSON); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, JSONResult{400, "参数错误", nil})
+		c.IndentedJSON(http.StatusOK, JSONResult{400, "参数错误", nil})
 		return
 	}
 
 	var m models.UserBasic
 	m.ID = user.ID
-	if err := s.model.Get(&m).Error; err == gorm.ErrRecordNotFound {
-		c.IndentedJSON(http.StatusBadRequest, JSONResult{400, "查无此用户", nil})
+	if err := s.um.Get(&m).Error; err == gorm.ErrRecordNotFound {
+		c.IndentedJSON(http.StatusOK, JSONResult{400, "查无此用户", nil})
 		return
 	} else if err != nil {
 		log.Errorf(">>Get user failed! Err: [%v]", err)
-		c.IndentedJSON(http.StatusInternalServerError, JSONResult{500, "内部错误", nil})
+		c.IndentedJSON(http.StatusOK, JSONResult{500, "内部错误", nil})
 		return
 	}
 	c.IndentedJSON(200, JSONResult{200, "成功", m})
@@ -116,19 +118,19 @@ func (s *UserBasicService) Get(c *gin.Context) {
 //
 //	@Tags		用户模块
 //	@Summary	更新用户
-//	@Param		account	body		service.UserUpdateReq	true "用户信息"
+//	@Param		account	body		service.UserUpdateReq	true	"用户信息"
 //	@Success	200		{object}	service.JSONResult{}
 //	@Failure	400		{object}	service.JSONResult{}
 //	@Router		/user/update [post]
 func (s *UserBasicService) Update(c *gin.Context) {
 	var user UserUpdateReq
 	if err := c.ShouldBindBodyWith(&user, binding.JSON); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, JSONResult{400, "参数错误", nil})
+		c.IndentedJSON(http.StatusOK, JSONResult{400, "参数错误", nil})
 		return
 	}
 
 	if _, err := govalidator.ValidateStruct(user); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, JSONResult{400, err.Error(), nil})
+		c.IndentedJSON(http.StatusOK, JSONResult{400, err.Error(), nil})
 		return
 	}
 
@@ -138,9 +140,9 @@ func (s *UserBasicService) Update(c *gin.Context) {
 	m.PassWord = user.PassWord
 	m.Phone = user.Phone
 	m.Email = user.Email
-	if err := s.model.Update(m).Error; err != nil {
+	if err := s.um.Update(m).Error; err != nil {
 		log.Errorf(">>Get user failed! Err: [%v]", err)
-		c.IndentedJSON(http.StatusInternalServerError, JSONResult{500, "内部错误", nil})
+		c.IndentedJSON(http.StatusOK, JSONResult{500, "内部错误", nil})
 		return
 	}
 	c.IndentedJSON(200, JSONResult{200, "成功", nil})
@@ -154,8 +156,8 @@ func (s *UserBasicService) Update(c *gin.Context) {
 //	@Failure	400	{object}	service.JSONResult{}
 //	@Router		/user/list [get]
 func (s *UserBasicService) List(c *gin.Context) {
-	list, _ := s.model.List()
-	c.IndentedJSON(200, JSONResult{200, "成功", list})
+	list, _ := s.um.List()
+	c.IndentedJSON(http.StatusOK, JSONResult{200, "成功", list})
 }
 
 // Login
@@ -169,30 +171,65 @@ func (s *UserBasicService) List(c *gin.Context) {
 func (s *UserBasicService) Login(c *gin.Context) {
 	var req UserLoginReq
 	if err := c.ShouldBindBodyWith(&req, binding.JSON); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, JSONResult{400, "参数错误", nil})
+		c.IndentedJSON(http.StatusOK, JSONResult{400, "参数错误", nil})
 		return
 	}
 
-	userByName := s.model.FindUserByName(req.Name)
+	userByName := s.um.FindUserByName(req.Name)
 	if userByName.Name == "" {
-		c.IndentedJSON(http.StatusBadRequest, JSONResult{400, "用户不存在", nil})
+		c.IndentedJSON(http.StatusOK, JSONResult{400, "用户不存在", nil})
 		return
 	}
 
 	if !utils.ValidatePassword(req.PassWord, userByName.Salt, userByName.PassWord) {
-		c.IndentedJSON(http.StatusBadRequest, JSONResult{400, "密码错误", nil})
+		c.IndentedJSON(http.StatusOK, JSONResult{400, "密码错误", nil})
 		return
 	}
 	userByName.UpdatedAt = time.Now()
 	userByName.LoginTime.Scan(time.Now())
 	userByName.IsLogOut = false
-	s.model.Update(userByName)
+	s.um.Update(userByName)
 
 	token := utils.GenToken(userByName.Name, userByName.PassWord)
 	c.IndentedJSON(http.StatusOK, JSONResult{200, "登陆成功", *token})
 }
 
-//	upgrader 跨域检查
+// FindUserByNameAndPwd
+//
+//	@Tags		用户模块
+//	@Summary	用户登陆
+//	@Param		name		query		string	true	"账号"
+//	@Param		password	query		string	true	"密码"
+//	@Success	200			{object}	service.JSONResult{data=models.UserBasic}
+//	@Failure	400			{object}	service.JSONResult{}
+//	@Router		/user/findUserByNameAndPwd [post]
+func (s *UserBasicService) FindUserByNameAndPwd(c *gin.Context) {
+	var req FindUserReq
+	if err := c.Bind(&req); err != nil {
+		c.IndentedJSON(http.StatusOK, JSONResult{400, "参数错误", nil})
+		return
+	}
+
+	userByName := s.um.FindUserByName(req.Name)
+	if userByName.Name == "" {
+		c.IndentedJSON(http.StatusOK, JSONResult{400, "用户不存在", nil})
+		return
+	}
+
+	if !utils.ValidatePassword(req.PassWord, userByName.Salt, userByName.PassWord) {
+		c.IndentedJSON(http.StatusOK, JSONResult{400, "密码错误", nil})
+		return
+	}
+	userByName.UpdatedAt = time.Now()
+	userByName.LoginTime.Scan(time.Now())
+	userByName.IsLogOut = false
+	s.um.Update(userByName)
+
+	userByName.Identity = utils.GenToken(userByName.Name, userByName.PassWord).Token
+	c.IndentedJSON(http.StatusOK, JSONResult{200, "登陆成功", FindUserResp{userByName}})
+}
+
+// upgrader 跨域检查
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
@@ -203,15 +240,32 @@ func (s *UserBasicService) SendMsg(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Errorf(">>SendMsg() upgrade failed! Err: [%v]", err)
-		c.IndentedJSON(http.StatusBadRequest, JSONResult{500, "内部错误", nil})
+		c.IndentedJSON(http.StatusOK, JSONResult{500, "内部错误", nil})
 		return
 	}
 	defer conn.Close()
 
-	msgHandler(conn, c)
+	msgHandler1(conn, c)
 }
 
-func msgHandler(ws *websocket.Conn, c *gin.Context) {
+func (s *UserBasicService) SearchFriends(c *gin.Context) {
+	var req SearchFriendReq
+	if err := c.Bind(&req); err != nil {
+		c.IndentedJSON(http.StatusOK, JSONResult{400, "参数错误", nil})
+		return
+	}
+
+	friends, err := s.cm.SearchFriend(req.UserId)
+	if err != nil {
+		log.Errorf(">>SearchFriends() failed! Err: [%v]", err)
+		c.IndentedJSON(http.StatusOK, JSONResult{500, "内部错误", nil})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, ListResp{200, "查询成功", nil, friends, len(friends)})
+}
+
+func msgHandler1(ws *websocket.Conn, c *gin.Context) {
 	//	监听redis频道消息
 	sub := redisc.Subscribe(c, redisc.SubscribeKey)
 	defer sub.Close()
@@ -245,5 +299,3 @@ func msgHandler(ws *websocket.Conn, c *gin.Context) {
 
 	}
 }
-
-

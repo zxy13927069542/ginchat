@@ -85,21 +85,43 @@ definitions:
     - name
     - password
     type: object
-  service.UserRegisterReq:
+  service.UserRegisterResp:
     properties:
-      password:
-        description: 密码
+      clientIP:
         type: string
-      rePassword:
-        description: 密码确认
+      clientPort:
         type: string
-      userName:
-        description: 用户名
+      createdAt:
         type: string
-    required:
-    - password
-    - rePassword
-    - userName
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      deviceInfo:
+        type: string
+      email:
+        type: string
+      heartbeatTime:
+        $ref: '#/definitions/models.NullTime'
+      id:
+        type: integer
+      identity:
+        type: string
+      isLogOut:
+        description: LogOutTime    uint64
+        type: boolean
+      loginOutTime:
+        $ref: '#/definitions/models.NullTime'
+      loginTime:
+        $ref: '#/definitions/models.NullTime'
+      name:
+        type: string
+      passWord:
+        type: string
+      phone:
+        type: string
+      salt:
+        type: string
+      updatedAt:
+        type: string
     type: object
   service.UserUpdateReq:
     properties:
@@ -128,7 +150,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /index:
+  /:
     get:
       responses:
         "200":
@@ -156,6 +178,36 @@ paths:
           schema:
             $ref: '#/definitions/service.JSONResult'
       summary: 删除用户
+      tags:
+      - 用户模块
+  /user/findUserByNameAndPwd:
+    post:
+      parameters:
+      - description: 账号
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: 密码
+        in: query
+        name: password
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/service.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.UserBasic'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.JSONResult'
+      summary: 用户登陆
       tags:
       - 用户模块
   /user/get:
@@ -232,19 +284,33 @@ paths:
       tags:
       - 用户模块
   /user/register:
-    post:
+    get:
       parameters:
       - description: 账号
-        in: body
-        name: account
+        in: query
+        name: name
         required: true
-        schema:
-          $ref: '#/definitions/service.UserRegisterReq'
+        type: string
+      - description: 密码
+        in: query
+        name: password
+        required: true
+        type: string
+      - description: 密码确认
+        in: query
+        name: Identity
+        required: true
+        type: string
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/service.JSONResult'
+            allOf:
+            - $ref: '#/definitions/service.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.UserRegisterResp'
+              type: object
         "400":
           description: Bad Request
           schema:
