@@ -2,13 +2,18 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"ginchat/models"
+	"ginchat/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	log "github.com/pion/ion-log"
 	"gopkg.in/fatih/set.v0"
+	"io"
 	"net"
 	"net/http"
+	"os"
+	"strings"
 	"sync"
 )
 
@@ -174,4 +179,46 @@ func udpSendProc() {
 		}
 
 	}
+}
+
+// Upload 上传聊天图片
+func (s *ChatService) Upload(c *gin.Context) {
+	file, header, err := c.Request.FormFile("file")
+	if err != nil {
+		log.Errorf(">>ChatService.Upload() failed! Err: [%v]", err)
+		c.IndentedJSON(http.StatusOK, JSONResult{500, "内部错误", nil})
+		return
+	}
+
+	content, err := io.ReadAll(file)
+	defer file.Close()
+	if err != nil {
+		log.Errorf(">>ChatService.Upload() failed! Err: [%v]", err)
+		c.IndentedJSON(http.StatusOK, JSONResult{500, "内部错误", nil})
+		return
+	}
+	//	根据文件内容生成校验和,确保文件唯一
+	name := utils.Sum(content)
+	splitArr := strings.Split(header.Filename, ".")
+	if len(splitArr) > 1 {
+		name = fmt.Sprintf("%s.%s", name, splitArr[len(splitArr)-1])
+	} else {
+		//	默认格式为png
+		name = fmt.Sprintf("%s.png", name)
+	}
+	url := fmt.Sprintf("./asset/upload/%s", name)
+	dstFile, err := os.Create(url)
+	defer dstFile.Close()
+	if err != nil {
+		log.Errorf(">>ChatService.Upload() failed! Err: [%v]", err)
+		c.IndentedJSON(http.StatusOK, JSONResult{500, "内部错误", nil})
+		return
+	}
+	if _, err = dstFile.Write(content); err != nil {
+		log.Errorf(">>ChatService.Upload() failed! Err: [%v]", err)
+		c.IndentedJSON(http.StatusOK, JSONResult{500, "内部错误", nil})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, JSONResult{200, "上传成功", url})
 }

@@ -43,5 +43,8 @@ func Router() *gin.Engine {
 	r.GET("/user/list", userService.List)
 	r.GET("/user/SendMsg", userService.SendMsg)
 
+	//	上传图片
+	r.POST("/attach/upload", chatService.Upload)
+
 	return r
 }
