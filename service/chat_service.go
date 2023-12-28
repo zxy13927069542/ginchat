@@ -186,7 +186,7 @@ func (s *ChatService) Upload(c *gin.Context) {
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
 		log.Errorf(">>ChatService.Upload() failed! Err: [%v]", err)
-		c.IndentedJSON(http.StatusOK, JSONResult{500, "内部错误", nil})
+		c.IndentedJSON(http.StatusOK, JSONBResult{500, "内部错误", nil})
 		return
 	}
 
@@ -194,7 +194,7 @@ func (s *ChatService) Upload(c *gin.Context) {
 	defer file.Close()
 	if err != nil {
 		log.Errorf(">>ChatService.Upload() failed! Err: [%v]", err)
-		c.IndentedJSON(http.StatusOK, JSONResult{500, "内部错误", nil})
+		c.IndentedJSON(http.StatusOK, JSONBResult{500, "内部错误", nil})
 		return
 	}
 	//	根据文件内容生成校验和,确保文件唯一
@@ -211,14 +211,14 @@ func (s *ChatService) Upload(c *gin.Context) {
 	defer dstFile.Close()
 	if err != nil {
 		log.Errorf(">>ChatService.Upload() failed! Err: [%v]", err)
-		c.IndentedJSON(http.StatusOK, JSONResult{500, "内部错误", nil})
+		c.IndentedJSON(http.StatusOK, JSONBResult{500, "内部错误", nil})
 		return
 	}
 	if _, err = dstFile.Write(content); err != nil {
 		log.Errorf(">>ChatService.Upload() failed! Err: [%v]", err)
-		c.IndentedJSON(http.StatusOK, JSONResult{500, "内部错误", nil})
+		c.IndentedJSON(http.StatusOK, JSONBResult{500, "内部错误", nil})
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, JSONResult{200, "上传成功", url})
+	c.IndentedJSON(http.StatusOK, JSONBResult{200, "上传成功", url})
 }

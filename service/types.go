@@ -10,6 +10,12 @@ type JSONResult struct {
 	Data    interface{} `json:"data"`
 }
 
+type JSONBResult struct {
+	Code    int
+	Message string `json:"msg"`
+	Data    interface{}
+}
+
 type ListResp struct {
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
