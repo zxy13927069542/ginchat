@@ -34,6 +34,11 @@ type Node struct {
 	GroupSet  set.Interface
 }
 
+const (
+	PrivateMsg = 1
+	GroupMsg = 2
+)
+
 // clientMap 映射关系
 var clientMap map[int64]*Node = make(map[int64]*Node, 0)
 
@@ -115,8 +120,10 @@ func msgHandler(data []byte) {
 
 	log.Infof("[ws]: %s", string(data))
 	switch msg.Type {
-	case 1: //	私信
+	case PrivateMsg: //	私信
 		sendPrivateMsg(msg.TargetID, data)
+	case GroupMsg:	//	群聊
+		sendGroupMsg(uint(msg.FromID), uint(msg.TargetID), data)
 
 	}
 }
@@ -128,6 +135,23 @@ func sendPrivateMsg(id int64, content []byte) {
 	rwLock.RUnlock()
 	if ok {
 		node.DataQueue <- content
+	}
+}
+
+//	sendGroupMsg 群聊
+func sendGroupMsg(userId uint, groupId uint, data []byte) {
+	ids := models.NewContactModel().SearchGroupFriends(groupId)
+	for _, id := range ids {
+		//	跳过自己
+		if id == userId {
+			continue
+		}
+
+		rwLock.RLock()
+		if v, exist := clientMap[int64(id)]; exist {
+			v.DataQueue <- data
+		}
+		rwLock.RUnlock()
 	}
 }
 

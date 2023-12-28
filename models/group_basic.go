@@ -15,3 +15,16 @@ type GroupBasic struct {
 func (table *GroupBasic) TableName() string {
 	return "group_basic"
 }
+
+
+type GroupBasicModel struct {
+	db *gorm.DB
+}
+
+func NewGroupBasicModel() *GroupBasicModel {
+	return &GroupBasicModel{
+		db: db,
+	}
+}
+
+

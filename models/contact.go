@@ -9,7 +9,7 @@ type Contact struct {
 	gorm.Model
 	OwnerID  uint //	谁的关系信息
 	TargetID uint //	对应的谁
-	Type     int  //	对应类型 1-好友 2-群组 3-待定
+	Type     int  //	对应类型 1-models.Friend 2-models.Group 3-待定
 	Desc     string
 }
 
@@ -44,4 +44,15 @@ func (m *ContactModel) SearchFriend(userId uint) ([]UserBasic, error) {
 		list = append(list, v.TargetID)
 	}
 	return UserBasicM.ListByIds(list)
+}
+
+//	SearchGroupFriends 根据群ID搜索群友ID
+func (m *ContactModel) SearchGroupFriends(groupId uint) []uint {
+	var friends []Contact
+	m.db.Where("target_id = ? and type = ?", groupId, Group).Find(&friends)
+	var ids []uint
+	for _, v := range friends {
+		ids = append(ids, v.OwnerID)
+	}
+	return ids
 }
