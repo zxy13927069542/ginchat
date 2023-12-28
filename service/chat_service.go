@@ -6,6 +6,7 @@ import (
 	"ginchat/models"
 	"ginchat/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/gorilla/websocket"
 	log "github.com/pion/ion-log"
 	"gopkg.in/fatih/set.v0"
@@ -183,6 +184,8 @@ func udpSendProc() {
 
 // Upload 上传聊天图片
 func (s *ChatService) Upload(c *gin.Context) {
+	var req UploadReq
+	_ = c.ShouldBindWith(&req, binding.FormMultipart)
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
 		log.Errorf(">>ChatService.Upload() failed! Err: [%v]", err)
@@ -204,7 +207,7 @@ func (s *ChatService) Upload(c *gin.Context) {
 		name = fmt.Sprintf("%s.%s", name, splitArr[len(splitArr)-1])
 	} else {
 		//	默认格式为png
-		name = fmt.Sprintf("%s.png", name)
+		name = fmt.Sprintf("%s%s", name, req.FileType)
 	}
 	url := fmt.Sprintf("./asset/upload/%s", name)
 	dstFile, err := os.Create(url)

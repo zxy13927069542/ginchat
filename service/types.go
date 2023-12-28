@@ -97,3 +97,9 @@ type ChatReq struct {
 	UserId int64  `json:"userId" form:"userId"`
 	Token  string `json:"token" form:"token"`
 }
+
+//	UploadReq 文件上传
+type UploadReq struct {
+	UserId   int64  `json:"userid" form:"userid"`
+	FileType string `json:"filetype" form:"filetype"`
+}
