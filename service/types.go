@@ -98,8 +98,14 @@ type ChatReq struct {
 	Token  string `json:"token" form:"token"`
 }
 
-//	UploadReq 文件上传
+// UploadReq 文件上传
 type UploadReq struct {
 	UserId   int64  `json:"userid" form:"userid"`
 	FileType string `json:"filetype" form:"filetype"`
+}
+
+//	AddFriendReq 添加好友
+type AddFriendReq struct {
+	UserId     uint   `form:"userId"`
+	TargetName string `form:"targetName"`
 }

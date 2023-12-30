@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"gorm.io/gorm"
 )
 
@@ -30,6 +31,51 @@ func NewContactModel() *ContactModel {
 	return &ContactModel{
 		db: db,
 	}
+}
+
+//	AddFriend 添加好友
+func (m *ContactModel) AddFriend(userId uint, targetName string) error {
+	//	查询目标用户是否存在
+	var userByName UserBasic
+	if userByName = NewUserBasicModel().FindUserByName(targetName); userByName.Name != targetName {
+		return errors.New("用户不存在")
+	}
+
+	//	查询是否已经是好友关系
+	var count int64
+	m.db.Debug().Model(&Contact{}).Where("owner_id = ? and target_id = ? and type = ?", userId, userByName.ID, Friend).
+		Or("owner_id = ? and target_id = ? and type = ?", userByName.ID, userId, Friend).Count(&count)
+	if count > 0 {
+		return errors.New("好友关系已存在")
+	}
+
+	tx := m.db.Begin()
+	//	发生panic()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	//	创建两条好友关系
+	var c1 Contact
+	c1.OwnerID = userId
+	c1.TargetID = userByName.ID
+	c1.Type = Friend
+	if err := m.db.Debug().Create(&c1).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	var c2 Contact
+	c2.OwnerID = userByName.ID
+	c2.TargetID = userId
+	c2.Type = Friend
+	if err := m.db.Debug().Create(&c2).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return nil
 }
 
 // SearchFriend 查询当前用户的好友信息

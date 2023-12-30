@@ -4,10 +4,10 @@ import (
 	"ginchat/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-	"log"
-	"os"
-	"time"
+	//"gorm.io/gorm/logger"
+	//"log"
+	//"os"
+	//"time"
 )
 
 var db *gorm.DB
@@ -20,15 +20,15 @@ var (
 // Init() database连接初始化
 func Init(c config.Config) *gorm.DB {
 	//	自定义日志打印sql
-	newLogger := logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags),
-		logger.Config{
-			SlowThreshold: time.Second,
-			LogLevel:      logger.Info,
-			Colorful:      true,
-		})
+	//newLogger := logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags),
+	//	logger.Config{
+	//		SlowThreshold: time.Second,
+	//		LogLevel:      logger.Info,
+	//		Colorful:      true,
+	//	})
 
 	var err error
-	db, err = gorm.Open(mysql.Open(c.Mysql.Dns), &gorm.Config{Logger: newLogger})
+	db, err = gorm.Open(mysql.Open(c.Mysql.Dns), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}

@@ -299,3 +299,18 @@ func msgHandler1(ws *websocket.Conn, c *gin.Context) {
 
 	}
 }
+
+//	AddFriend 添加好友
+func (s *UserBasicService) AddFriend(c *gin.Context) {
+	var req AddFriendReq
+	if err := c.Bind(&req); err != nil {
+		c.IndentedJSON(http.StatusOK, JSONResult{400, "参数错误", nil})
+		return
+	}
+
+	if err := s.cm.AddFriend(req.UserId, req.TargetName); err != nil {
+		c.IndentedJSON(http.StatusOK, JSONResult{500, err.Error(), nil})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, JSONResult{200, "成功", nil})
+}
