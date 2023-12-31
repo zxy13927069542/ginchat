@@ -44,6 +44,13 @@ func (m *UserBasicModel) FindUserByName(name string) UserBasic {
 	return user
 }
 
+// FindUserByID 根据ID查询
+func (m *UserBasicModel) FindUserByID(id uint) UserBasic {
+	var user UserBasic
+	m.db.Where("id = ?", id).First(&user)
+	return user
+}
+
 // FindUserByPhone()
 func (m *UserBasicModel) FindUserByPhone(phone string) UserBasic {
 	var user UserBasic

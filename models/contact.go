@@ -41,9 +41,13 @@ func (m *ContactModel) AddFriend(userId uint, targetName string) error {
 		return errors.New("用户不存在")
 	}
 
+	if userId == userByName.ID {
+		return errors.New("不能添加自己为好友")
+	}
+
 	//	查询是否已经是好友关系
 	var count int64
-	m.db.Debug().Model(&Contact{}).Where("owner_id = ? and target_id = ? and type = ?", userId, userByName.ID, Friend).
+	m.db.Model(&Contact{}).Where("owner_id = ? and target_id = ? and type = ?", userId, userByName.ID, Friend).
 		Or("owner_id = ? and target_id = ? and type = ?", userByName.ID, userId, Friend).Count(&count)
 	if count > 0 {
 		return errors.New("好友关系已存在")
@@ -62,7 +66,7 @@ func (m *ContactModel) AddFriend(userId uint, targetName string) error {
 	c1.OwnerID = userId
 	c1.TargetID = userByName.ID
 	c1.Type = Friend
-	if err := m.db.Debug().Create(&c1).Error; err != nil {
+	if err := m.db.Create(&c1).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -70,7 +74,7 @@ func (m *ContactModel) AddFriend(userId uint, targetName string) error {
 	c2.OwnerID = userByName.ID
 	c2.TargetID = userId
 	c2.Type = Friend
-	if err := m.db.Debug().Create(&c2).Error; err != nil {
+	if err := m.db.Create(&c2).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -101,4 +105,26 @@ func (m *ContactModel) SearchGroupFriends(groupId uint) []uint {
 		ids = append(ids, v.OwnerID)
 	}
 	return ids
+}
+
+//	AddGroup 添加群聊
+func (m *ContactModel) AddGroup(userId uint, groupId uint) error {
+	//	群聊是否存在
+	group := NewGroupBasicModel().FindGroupById(groupId)
+	if group.CreatedAt.IsZero() {
+		return errors.New("群聊不存在")
+	}
+
+	//	是否已入群
+	var count int64
+	m.db.Model(&Contact{}).Where("owner_id = ? and target_id = ? and type = ?", userId, groupId, Group).Count(&count)
+	if count >= 1 {
+		return errors.New("该用户已在群内")
+	}
+
+	var contact Contact
+	contact.OwnerID = userId
+	contact.TargetID = groupId
+	contact.Type = Group
+	return m.db.Create(&contact).Error
 }

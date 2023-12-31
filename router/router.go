@@ -14,6 +14,7 @@ func Router() *gin.Engine {
 	//	服务
 	userService := service.NewUserBasicService()
 	chatService := service.NewChatService()
+	groupService := service.NewGroupService()
 
 	//	swagger api文档配置
 	docs.SwaggerInfo.BasePath = ""
@@ -43,6 +44,8 @@ func Router() *gin.Engine {
 	r.GET("/user/list", userService.List)
 	r.GET("/user/SendMsg", userService.SendMsg)
 	r.POST("/contact/addfriend", userService.AddFriend)
+	r.POST("/contact/createCommunity", groupService.CreateGroup)
+	r.POST("/contact/joinGroup", groupService.AddGroup)
 
 	//	上传图片
 	r.POST("/attach/upload", chatService.Upload)

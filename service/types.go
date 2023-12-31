@@ -104,8 +104,22 @@ type UploadReq struct {
 	FileType string `json:"filetype" form:"filetype"`
 }
 
-//	AddFriendReq 添加好友
+// AddFriendReq 添加好友
 type AddFriendReq struct {
 	UserId     uint   `form:"userId"`
 	TargetName string `form:"targetName"`
+}
+
+// CreateGroupReq 创建群聊
+type CreateGroupReq struct {
+	OwnerId string `form:"ownerId"`
+	Name    string `form:"name"`
+	Icon    string `form:"icon"`
+	Desc    string `form:"desc"`
+}
+
+//	JoinGroupReq 加入群聊
+type JoinGroupReq struct {
+	UserId  string `form:"userId"`
+	GroupId string `form:"comId"`
 }

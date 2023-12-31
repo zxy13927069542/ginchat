@@ -3,6 +3,7 @@ package utils
 import (
 	"github.com/asaskevich/govalidator"
 	"regexp"
+	"strconv"
 )
 
 func Init() {
@@ -13,4 +14,9 @@ func Init() {
 func IsMobile(s string) bool {
 	matched, _ := regexp.MatchString(`^(1[1-9][0-9]\d{8})$`, s)
 	return matched
+}
+
+func Str2Uint(s string) uint {
+	v, _ := strconv.Atoi(s)
+	return uint(v)
 }
