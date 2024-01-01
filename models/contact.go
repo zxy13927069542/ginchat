@@ -108,23 +108,37 @@ func (m *ContactModel) SearchGroupFriends(groupId uint) []uint {
 }
 
 //	AddGroup 添加群聊
-func (m *ContactModel) AddGroup(userId uint, groupId uint) error {
+func (m *ContactModel) AddGroup(userId uint, group string) error {
 	//	群聊是否存在
-	group := NewGroupBasicModel().FindGroupById(groupId)
-	if group.CreatedAt.IsZero() {
+	g := NewGroupBasicModel().FindGroupByIdOrName(group)
+	if g.Name == "" {
 		return errors.New("群聊不存在")
 	}
 
 	//	是否已入群
 	var count int64
-	m.db.Model(&Contact{}).Where("owner_id = ? and target_id = ? and type = ?", userId, groupId, Group).Count(&count)
+	m.db.Model(&Contact{}).Where("owner_id = ? and target_id = ? and type = ?", userId, g.ID, Group).Count(&count)
 	if count >= 1 {
 		return errors.New("该用户已在群内")
 	}
 
 	var contact Contact
 	contact.OwnerID = userId
-	contact.TargetID = groupId
+	contact.TargetID = g.ID
 	contact.Type = Group
 	return m.db.Create(&contact).Error
+}
+
+//	LoadGroup 查询用户所在群聊
+func (m *ContactModel) LoadGroup(ownerId uint) []GroupBasic {
+	var contacts []Contact
+	var groupIds []uint
+	m.db.Where("owner_id = ? and type = ?", ownerId, Group).Find(&contacts)
+	for _, v := range contacts {
+		groupIds = append(groupIds, v.TargetID)
+	}
+
+	var groupList []GroupBasic
+	m.db.Where("id in ?", groupIds).Find(&groupList)
+	return groupList
 }

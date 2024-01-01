@@ -121,5 +121,10 @@ type CreateGroupReq struct {
 //	JoinGroupReq 加入群聊
 type JoinGroupReq struct {
 	UserId  string `form:"userId"`
-	GroupId string `form:"comId"`
+	Group string `form:"comId"`
+}
+
+//	LoadGroupReq 加载群聊列表
+type LoadGroupReq struct {
+	OwnerId string `form:"ownerId"`
 }

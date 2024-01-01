@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	log "github.com/pion/ion-log"
 	"gorm.io/gorm"
 )
 
@@ -19,7 +20,6 @@ func (table *GroupBasic) TableName() string {
 	return "group_basic"
 }
 
-
 type GroupBasicModel struct {
 	db *gorm.DB
 }
@@ -30,7 +30,7 @@ func NewGroupBasicModel() *GroupBasicModel {
 	}
 }
 
-//	CreateGroup 新建群聊
+// CreateGroup 新建群聊
 func (m *GroupBasicModel) CreateGroup(group GroupBasic) error {
 	if group.Name == "" || group.OwnerID <= 0 {
 		return errors.New("群名或群主ID不能为空")
@@ -48,14 +48,37 @@ func (m *GroupBasicModel) CreateGroup(group GroupBasic) error {
 		return errors.New("群名重复")
 	}
 
-	return m.db.Create(&group).Error
+	tx := m.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	//	先建群
+	if err := m.db.Create(&group).Error; err != nil {
+		log.Errorf(">>CreateGroup() failed! Err: [%v]", err)
+		tx.Rollback()
+		return errors.New("创建失败")
+	}
+
+	//	将群主ID加入群聊
+	var contact Contact
+	contact.OwnerID = group.OwnerID
+	contact.TargetID = group.ID
+	contact.Type = Group
+	if err := m.db.Create(&contact).Error; err != nil {
+		log.Errorf(">>CreateGroup() failed! Err: [%v]", err)
+		tx.Rollback()
+		return errors.New("创建失败")
+	}
+	tx.Commit()
+	return nil
 }
 
-//	FindGroupById 根据ID查询群聊
-func (m *GroupBasicModel) FindGroupById(groupId uint) GroupBasic {
-	var group GroupBasic
-	m.db.Where("id = ?", groupId).First(&group)
-	return group
+// FindGroupById 根据ID查询群聊
+func (m *GroupBasicModel) FindGroupByIdOrName(group string) GroupBasic {
+	var g GroupBasic
+	m.db.Where("id = ? or name = ?", group, group).First(&g)
+	return g
 }
-
-
