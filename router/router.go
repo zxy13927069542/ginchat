@@ -47,6 +47,7 @@ func Router() *gin.Engine {
 	r.POST("/contact/createCommunity", groupService.CreateGroup)
 	r.POST("/contact/joinGroup", groupService.AddGroup)
 	r.POST("/contact/loadcommunity", groupService.LoadCommunity)
+	r.POST("/user/redisMsg", chatService.LoadMsg)
 
 	//	上传图片
 	r.POST("/attach/upload", chatService.Upload)

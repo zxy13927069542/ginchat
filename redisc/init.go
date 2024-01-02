@@ -8,11 +8,11 @@ import (
 )
 
 var ctx = context.Background()
-var rdb *redis.Client
+var Redisc *redis.Client
 
 //	Init() redis连接初始化
 func Init(c config.Config) *redis.Client {
-	rdb = redis.NewClient(&redis.Options{
+	Redisc = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", c.Redis.Host, c.Redis.Port),
 		Password: c.Redis.Password,
 		DB:       c.Redis.DB,
@@ -20,8 +20,8 @@ func Init(c config.Config) *redis.Client {
 		MinIdleConns: c.Redis.MinIdleConn,
 	})
 
-	if err := rdb.Ping(ctx).Err(); err != nil {
+	if err := Redisc.Ping(ctx).Err(); err != nil {
 		panic(err)
 	}
-	return rdb
+	return Redisc
 }

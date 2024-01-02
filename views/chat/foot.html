@@ -365,8 +365,8 @@
                         if (this.isReadRedisMsg.filter(item => item === user.ID).length <= 0) {
                             post("user/redisMsg", { userIdA: userId(), userIdB: user.ID, start: this.start, end: this.end, isRev: false }, function (res) {
                                 //循环读取的消息记录 并显示
-                                for (var i in res.Total) {
-                                    this.showmsg(user, JSON.parse(res.Total[i]), false, true)
+                                for (var i in res.Rows) {
+                                    this.showmsg(user, JSON.parse(res.Rows[i]), false, true)
                                 }
                             }.bind(this))
                             this.isReadRedisMsg.push(user.ID)
@@ -398,8 +398,8 @@
                                     this.end = this.end + 2;
                                     post("user/redisMsg", { userIdA: userId(), userIdB: user.ID, start: this.start, end: this.end, isRev: false }, function (res) {
                                         //循环读取的消息记录 并显示
-                                        for (var i in res.Total) {
-                                            this.showmsg(user, JSON.parse(res.Total[i]), true)
+                                        for (var i in res.Rows) {
+                                            this.showmsg(user, JSON.parse(res.Rows[i]), true)
                                         }
                                         setTimeout(() => {
                                             this.isLoadMore = false;

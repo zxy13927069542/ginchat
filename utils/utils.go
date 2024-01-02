@@ -20,3 +20,13 @@ func Str2Uint(s string) uint {
 	v, _ := strconv.Atoi(s)
 	return uint(v)
 }
+
+func Str2Int64(s string) int64 {
+	v, _ := strconv.Atoi(s)
+	return int64(v)
+}
+
+func Str2Bool(s string) bool {
+	parseBool, _ := strconv.ParseBool(s)
+	return parseBool
+}

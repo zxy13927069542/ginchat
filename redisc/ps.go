@@ -11,11 +11,11 @@ const (
 )
 
 func Publish(ctx context.Context, channel string, message string) error {
-	return rdb.Publish(ctx, channel, message).Err()
+	return Redisc.Publish(ctx, channel, message).Err()
 }
 
 func PSubscribe(ctx context.Context, channels ...string) *redis.PubSub {
-	pubsub := rdb.Subscribe(ctx)
+	pubsub := Redisc.Subscribe(ctx)
 	if err := pubsub.PSubscribe(ctx, channels...); err != nil {
 		panic(err)
 	}
@@ -23,6 +23,6 @@ func PSubscribe(ctx context.Context, channels ...string) *redis.PubSub {
 }
 
 func Subscribe(ctx context.Context, channels ...string) *redis.PubSub {
-	return rdb.Subscribe(ctx, channels...)
+	return Redisc.Subscribe(ctx, channels...)
 }
 

@@ -1,12 +1,15 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"ginchat/models"
+	"ginchat/redisc"
 	"ginchat/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/websocket"
 	log "github.com/pion/ion-log"
 	"gopkg.in/fatih/set.v0"
@@ -121,7 +124,7 @@ func msgHandler(data []byte) {
 	log.Infof("[ws]: %s", string(data))
 	switch msg.Type {
 	case PrivateMsg: //	私信
-		sendPrivateMsg(msg.TargetID, data)
+		sendPrivateMsg(msg.TargetID, data, msg)
 	case GroupMsg:	//	群聊
 		sendGroupMsg(uint(msg.FromID), uint(msg.TargetID), data)
 
@@ -129,13 +132,25 @@ func msgHandler(data []byte) {
 }
 
 // sendPrivateMsg 私信
-func sendPrivateMsg(id int64, content []byte) {
+func sendPrivateMsg(targetId int64, data []byte, msg models.Message) {
+	//	用户在线则往websocket里发
 	rwLock.RLock()
-	node, ok := clientMap[id]
+	node, ok := clientMap[targetId]
 	rwLock.RUnlock()
 	if ok {
-		node.DataQueue <- content
+		node.DataQueue <- data
 	}
+
+	//	把消息通过sorted set 缓存到redis中
+	//	zadd key [msg_大ID_小ID] score [消息创建时间] value [消息本体]
+	key := ""
+	c := context.Background()
+	if msg.FromID > msg.TargetID {
+		key = fmt.Sprintf("msg_%d_%d", msg.FromID, msg.TargetID)
+	} else {
+		key = fmt.Sprintf("msg_%d_%d", msg.TargetID, msg.FromID)
+	}
+	redisc.Redisc.ZAdd(c, key, &redis.Z{Score: float64(msg.CreateTime), Member: data})
 }
 
 //	sendGroupMsg 群聊
@@ -153,6 +168,7 @@ func sendGroupMsg(userId uint, groupId uint, data []byte) {
 		}
 		rwLock.RUnlock()
 	}
+	//	todo: 群聊消息也通过redis缓存
 }
 
 // udpSendChan udp消息管道 里面的消息会发送到udp 用于群发
@@ -248,4 +264,36 @@ func (s *ChatService) Upload(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, JSONBResult{200, "上传成功", url})
+}
+
+//	LoadMsg 加载历史消息
+func (s *ChatService) LoadMsg(c *gin.Context) {
+	var req RedisMsgReq
+	if err := c.Bind(&req); err != nil {
+		c.IndentedJSON(http.StatusOK, JSONBResult{400, "参数错误", nil})
+		return
+	}
+
+	msgs := loadMsg(utils.Str2Int64(req.UserIdA), utils.Str2Int64(req.UserIdB),
+		utils.Str2Bool(req.IsRev), utils.Str2Int64(req.Start), utils.Str2Int64(req.End), c)
+	c.IndentedJSON(http.StatusOK, ListResp{Code: 200, Message: "成功", Rows: msgs, Total: len(msgs)})
+}
+
+func loadMsg(userA, userB int64, isRev bool, start, end int64, c context.Context) []string {
+	key := ""
+	if userA > userB {
+		key = fmt.Sprintf("msg_%d_%d", userA, userB)
+	} else {
+		key = fmt.Sprintf("msg_%d_%d", userB, userA)
+	}
+
+	switch isRev {
+	case true:
+		result, _ := redisc.Redisc.ZRange(c, key, start, end).Result()
+		return result
+	case false:
+		result, _ := redisc.Redisc.ZRevRange(c, key, start, end).Result()
+		return result
+	}
+	return nil
 }

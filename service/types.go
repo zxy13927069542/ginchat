@@ -118,13 +118,22 @@ type CreateGroupReq struct {
 	Desc    string `form:"desc"`
 }
 
-//	JoinGroupReq 加入群聊
+// JoinGroupReq 加入群聊
 type JoinGroupReq struct {
-	UserId  string `form:"userId"`
-	Group string `form:"comId"`
+	UserId string `form:"userId"`
+	Group  string `form:"comId"`
 }
 
-//	LoadGroupReq 加载群聊列表
+// LoadGroupReq 加载群聊列表
 type LoadGroupReq struct {
 	OwnerId string `form:"ownerId"`
+}
+
+//	RedisMsgReq 读取历史消息
+type RedisMsgReq struct {
+	UserIdA string `form:"userIdA"`
+	UserIdB string `form:"userIdB"`
+	Start   string `form:"start"`
+	End     string `form:"end"`
+	IsRev   string `form:"isRev"`
 }
